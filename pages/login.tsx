@@ -10,9 +10,10 @@ import Spinner from '@/components/Spinner';
 import LoginWithGoogleButton from '@/components/ui/LoginWithGoogleButton';
 import Input from '@/components/ui/Input';
 import LoadingButton from '@/components/ui/LoadingButton';
-import SignUpModal from '@/components/ui/SignUpModal';
 import { loginWithEmail, useIsLoginWithEmailLoading } from '@/components/redux/auth/loginWithEmail';
 import { LoadingStateTypes } from '@/components/redux/types';
+import SignUpAndSignInWithPhone from '@/components/ui/SignUpAndSignInWithPhone';
+import Link from 'next/link';
 
 export const googleLoginProvider = new GoogleAuthProvider();
 
@@ -25,7 +26,6 @@ const LoginPage: NextPage = () => {
     const [disableSubmit, setDisableSubmit] = useState(true);
     const isLoading = useIsLoginWithEmailLoading();
 
-    const [showRegistration, setshowRegistration] = useState(false);
     const router = useRouter();
 
     // Realtime validation to enable submit button
@@ -97,7 +97,16 @@ const LoginPage: NextPage = () => {
                                 <div className="w-full border-t border-gray-300" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="bg-white px-2 text-gray-500">Or login with</span>
+                                <span className="bg-white px-2 text-gray-500">Or login with Phone</span>
+                            </div>
+                        </div>
+                        <SignUpAndSignInWithPhone/>
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-300" />
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="bg-white px-2 text-gray-500">Or login with Google</span>
                             </div>
                         </div>
                         <div className="mt-2 grid grid-cols-1 gap-3">
@@ -111,18 +120,17 @@ const LoginPage: NextPage = () => {
                                     </div>
                                 </div>
                                 <div className="relative flex justify-center text-sm">
-                                    <div
-                                        onClick={() => setshowRegistration(true)}
+                                    <Link
+                                        href="/signup"
                                         className="ml-2 cursor-pointer font-medium text-violet-600 hover:text-violet-400"
                                     >
                                         Sign Up
-                                    </div>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <SignUpModal open={showRegistration} setOpen={setshowRegistration} />
-                </div>
+               </div>
             </div>
             <ToastBox />
         </div>

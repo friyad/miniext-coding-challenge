@@ -9,40 +9,49 @@ import { useAppDispatch } from '@/components/redux/store';
 import { showToast } from '@/components/redux/toast/toastSlice';
 import Input from '@/components/ui/Input';
 import LoadingButton from '@/components/ui/LoadingButton';
-import Logout from './Logout';
 import { useAuth, useGetAuth } from '../useAuth';
 import { LoadingStateTypes } from '../redux/types';
 import {
-    sendVerificationCode,
-    useSendVerificationCodeLoading,
-    useVerifyPhoneNumberLoading,
-    verifyPhoneNumber,
+    signInWithPhone,
+    useSignInWithPhoneLoading,
+    useVerifySignInWithPhoneLoading,
+    verifySignInWithPhone,
 } from '../redux/auth/verifyPhoneNumber';
 
-const PhoneVerification = () => {
+const SignUpAndSignInWithPhone = () => {
     const dispatch = useAppDispatch();
     const auth = useAuth();
     const authInstance = useGetAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [OTPCode, setOTPCode] = useState('');
+    const [disableSubmit, setDisableSubmit] = useState(true);
     const [show, setShow] = useState(false);
 
-    const sendVerificationLoading = useSendVerificationCodeLoading();
-    const verifyPhoneNumberLoading = useVerifyPhoneNumberLoading();
+    const signInLoading = useSignInWithPhoneLoading();
+    const verifyLoading = useVerifySignInWithPhoneLoading();
 
     const [recaptcha, setRecaptcha] = useState<RecaptchaVerifier | null>(null);
     const [recaptchaResolved, setRecaptchaResolved] = useState(false);
     const [verificationId, setVerificationId] = useState('');
     const router = useRouter();
 
+    // Validate Submit Button
+    useEffect(() => {
+        if (phoneNumber.slice() === '' || phoneNumber.length < 10) {
+            setDisableSubmit(true);
+        } else {
+            setDisableSubmit(false);
+        }
+    }, [phoneNumber]);
+
     // Sending OTP and storing id to verify it later
     const handleSendVerification = async () => {
+        // this checks if the auth object is loaded
         if (authInstance.type !== LoadingStateTypes.LOADED) return;
 
         dispatch(
-            sendVerificationCode({
+            signInWithPhone({
                 phoneNumber,
-                auth,
                 authInstance,
                 recaptcha,
                 recaptchaResolved,
@@ -62,7 +71,7 @@ const PhoneVerification = () => {
     const ValidateOtp = async () => {
         if (authInstance.type !== LoadingStateTypes.LOADED) return;
         dispatch(
-            verifyPhoneNumber({
+            verifySignInWithPhone({
                 auth,
                 authInstance,
                 OTPCode,
@@ -77,6 +86,7 @@ const PhoneVerification = () => {
             })
         );
     };
+
 
     // generating the recaptcha on page render
     useEffect(() => {
@@ -95,51 +105,38 @@ const PhoneVerification = () => {
                     })
                 );
             },
-            isolated: false,
         });
 
         captcha.render();
 
         setRecaptcha(captcha);
-    }, [dispatch]);
+    }, []);
 
     return (
-        <div className="flex items-center justify-center min-h-full px-4 py-12 sm:px-6 lg:px-8">
-            <div className="w-full max-w-md space-y-8">
-                <div>
-                    <img
-                        className="w-auto h-12 mx-auto"
-                        src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg"
-                        alt="Workflow"
+        <div className="flex items-center justify-center">
+            <div className="w-full">
+              <div className="w-full">
+                <div className="flex pb-4 gap-4 flex-col">
+                    <Input
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="Phone number"
+                        type="text"
+                        required
                     />
-                    <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">
-                        Sign in to your account
-                    </h2>
+                    <LoadingButton
+                        onClick={handleSendVerification}
+                        loading={signInLoading}
+                        disabled={disableSubmit || signInLoading}
+                        loadingText="Sending OTP..."
+                    >
+                        Send OTP
+                    </LoadingButton>
                 </div>
-
-                <div className="max-w-xl w-full rounded overflow-hidden shadow-lg py-2 px-4">
-                    <div className="px-4 flex p-4 pb-10 gap-4 flex-col">
-                        <Input
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            placeholder="phone number"
-                            type="text"
-                        />
-                        <LoadingButton
-                            onClick={handleSendVerification}
-                            loading={sendVerificationLoading}
-                            loadingText="Sending OTP"
-                        >
-                            Send OTP
-                        </LoadingButton>
-                    </div>
-                    <div id="recaptcha-container" />
-                    <div className="flex w-full flex-col">
-                        <Logout />
-                    </div>
-
-                    <Modal show={show} setShow={setShow}>
-                        <div className="max-w-xl w-full bg-white py-6 rounded-lg">
+                <div id="recaptcha-container" /> 
+                    
+                   <Modal show={show} setShow={setShow}>
+                        <div className="w-fit bg-white py-3 rounded-lg">
                             <h2 className="text-lg font-semibold text-center mb-10">
                                 Enter Code to Verify
                             </h2>
@@ -150,17 +147,17 @@ const PhoneVerification = () => {
                                     placeholder="Enter your OTP"
                                     onChange={(e) => setOTPCode(e.target.value)}
                                 />
-
                                 <LoadingButton
                                     onClick={ValidateOtp}
-                                    loading={verifyPhoneNumberLoading}
+                                    loading={verifyLoading}
+                                    disabled={disableSubmit || verifyLoading}
                                     loadingText="Verifying..."
                                 >
                                     Verify
                                 </LoadingButton>
                             </div>
                         </div>
-                    </Modal>
+                   </Modal>
                 </div>
             </div>
             <ToastBox />
@@ -168,4 +165,4 @@ const PhoneVerification = () => {
     );
 };
 
-export default PhoneVerification;
+export default SignUpAndSignInWithPhone;
